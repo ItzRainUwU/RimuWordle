@@ -10,29 +10,41 @@ const ROWS = 6; const COLS = 5;
 let discordSdk;
 let discordUser = null;
 
-// --- LOCAL STORAGE DATA ---
-let userStats = JSON.parse(localStorage.getItem('wordleStats')) || { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
+// --- LOCAL STORAGE DATA (FIXED FOR DISCORD) ---
+let userStats = { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
+
+// Wrap in try/catch to prevent Discord Sandbox from crashing the game
+try {
+    let savedStats = localStorage.getItem('wordleStats');
+    if (savedStats) userStats = JSON.parse(savedStats);
+} catch (e) {
+    console.warn("localStorage is blocked. Stats will not save between sessions.");
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Setup UI and Game State immediately
+    // Hide the broken avatar image initially
+    document.getElementById("user-avatar").style.display = "none";
+    
     setupModals();
     loadGameState(); 
     
-    // 2. Setup Discord & Fetch Leaderboard
     await setupDiscordSdk();
     loadLeaderboard();
 });
 
 async function setupDiscordSdk() {
     if (typeof window.discordSdk !== 'undefined') {
-        discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
-        await discordSdk.ready();
-        console.log("Discord SDK is ready");
-
-        const auth = await discordSdk.commands.authenticate();
-        discordUser = auth.user;
-        
-        updateUserProfile(discordUser);
+        try {
+            discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
+            await discordSdk.ready();
+            console.log("Discord SDK is ready");
+            
+            // Temporary Fallback: Just set a generic name until we build the OAuth backend
+            document.getElementById("user-name-display").innerText = "Player";
+            
+        } catch (e) {
+            console.error("Discord SDK setup failed:", e);
+        }
     } else {
         console.warn("Discord SDK not detected. Running in browser mode.");
     }
@@ -87,7 +99,7 @@ function initGame(forceNew = false) {
 // --- 2. SCORE SUBMISSION ---
 async function submitScore(numGuesses) {
     try {
-        let username = discordUser ? discordUser.username : (prompt("Enter name for leaderboard:", "Guest") || "Guest");
+        let username = discordUser ? discordUser.username : "Player";
 
         await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
@@ -139,7 +151,11 @@ function updateStats(won) {
     } else {
         userStats.currentStreak = 0;
     }
-    localStorage.setItem('wordleStats', JSON.stringify(userStats));
+    
+    try {
+        localStorage.setItem('wordleStats', JSON.stringify(userStats));
+    } catch (e) {}
+    
     updateSidebar();
 }
 
@@ -150,7 +166,6 @@ function showStats(won) {
     document.getElementById("stat-streak").innerText = userStats.currentStreak;
     document.getElementById("stat-max").innerText = userStats.maxStreak;
 
-    // Draw Bars
     const distContainer = document.getElementById("guess-distribution");
     distContainer.innerHTML = "";
     let maxDist = Math.max(...userStats.distribution, 1); 
@@ -323,7 +338,7 @@ async function loadLeaderboard() {
         let data = await response.json();
         
         let list = document.getElementById("score-list");
-        if (!list) return; // Failsafe if the HTML id is different
+        if (!list) return; 
         
         list.innerHTML = ""; 
         
@@ -350,20 +365,24 @@ async function loadLeaderboard() {
 
 // --- SAVE/LOAD & HARD MODE ---
 function saveGameState() {
-    const state = { currentWord, guesses, gameOver };
-    localStorage.setItem('wordleState', JSON.stringify(state));
+    try {
+        const state = { currentWord, guesses, gameOver };
+        localStorage.setItem('wordleState', JSON.stringify(state));
+    } catch (e) {}
 }
 
 function loadGameState() {
-    const saved = JSON.parse(localStorage.getItem('wordleState'));
-    if (saved && saved.currentWord) {
-        currentWord = saved.currentWord;
-        guesses = saved.guesses;
-        gameOver = saved.gameOver;
-        initGame(); 
-    } else {
-        initGame(true); 
-    }
+    try {
+        const saved = JSON.parse(localStorage.getItem('wordleState'));
+        if (saved && saved.currentWord) {
+            currentWord = saved.currentWord;
+            guesses = saved.guesses;
+            gameOver = saved.gameOver;
+            initGame(); 
+            return;
+        }
+    } catch (e) {}
+    initGame(true); 
 }
 
 function checkHardMode(guess) {
