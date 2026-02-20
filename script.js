@@ -24,10 +24,13 @@ async function setupDiscordSdk() {
 let userStats = JSON.parse(localStorage.getItem('wordleStats')) || { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
 
 window.onload = function() {
-    setupDiscordSdk(); // Performs the handshake to prevent gray screens
-    setupModals();
-    loadGameState(); 
-    loadLeaderboard();
+    // Small delay ensures the HTML IDs are fully registered in the browser memory
+    setTimeout(async () => {
+        await setupDiscordSdk(); 
+        setupModals();
+        loadGameState(); 
+        loadLeaderboard();
+    }, 100); 
 };
 
 function initGame(forceNew = false) {
@@ -366,3 +369,4 @@ function checkHardMode(guess) {
     }
     return null;
 }
+
