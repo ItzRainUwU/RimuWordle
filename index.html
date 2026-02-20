@@ -16,16 +16,15 @@
     <div class="app-layout">
         <div class="players-overlay">
             <div class="user-profile">
-                <div class="avatar-large" style="background-color: #5865F2;">R</div>
-                <div class="user-info">
-                    <span class="username">You</span>
-                    <span class="streak" id="sidebar-streak">🔥 0 Day Streak</span>
-                </div>
-            </div>
-            <div class="active-players-list" id="score-list">
-                <div class="loading-text" style="color:#818384; font-size:12px;">Loading players...</div>
-            </div>
-        </div>
+    <div class="avatar-large" id="user-avatar-container" style="background-color: #5865F2;">
+        <img id="user-avatar" src="" style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;">
+        <span id="user-initial">R</span> 
+    </div>
+    <div class="user-info">
+        <span class="username" id="user-name-display">You</span>
+        <span class="streak" id="sidebar-streak">🔥 0 Day Streak</span>
+    </div>
+</div>
 
         <main class="game-container">
             <header>
@@ -118,5 +117,4 @@
     <script src="words.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>
