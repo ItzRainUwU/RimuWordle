@@ -22,38 +22,32 @@
 
 body {
     background-color: var(--bg-color);
-    color: white;
     margin: 0;
     display: flex;
     justify-content: center;
-    align-items: center; /* This perfectly centers everything vertically */
-    min-height: 100vh;
+    align-items: center;
+    height: 100vh; /* Changed from min-height to height for exact centering */
     overflow: hidden;
 }
 
-/* --- LAYOUT --- */
 .app-layout { 
+    position: relative; /* Acts as an anchor for the sidebar */
     display: flex; 
-    flex-direction: row; 
-    justify-content: center; 
-    align-items: center; /* Ensures sidebar and game are aligned together */
+    justify-content: center; /* This perfectly centers the game board */
+    align-items: center; 
     width: 100%;
     max-width: 1000px; 
-    gap: 60px; 
     padding: 20px;
+    box-sizing: border-box;
 }
 
-/* --- SIDEBAR / LEADERBOARD --- */
 .players-overlay {
+    position: absolute; /* Pulls it out so it doesn't push the board */
+    left: 20px; /* Pins it to the left side */
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    width: 240px;
-    flex-shrink: 0; 
-    background-color: rgba(255, 255, 255, 0.03);
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid var(--tile-border-idle);
+    gap: 20px;
+    width: 220px;
 }
 
 .user-profile, .player-row {
