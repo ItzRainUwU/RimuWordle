@@ -120,7 +120,9 @@ body {
 /* --- MAIN GAME --- */
 .game-container {
     flex-grow: 0;
-    width: 400px;
+    width: 100%; 
+    max-width: 400px;
+    height: 95vh; /* Tells the game container to use the full window height */
     display: flex; 
     flex-direction: column; 
     align-items: center;
@@ -132,13 +134,13 @@ header {
     justify-content: center; 
     align-items: center;
     position: relative; 
-    padding-bottom: 15px;
+    padding-bottom: 5px;
     border-bottom: 1px solid var(--tile-border-idle);
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 h1 {
-    font-size: 36px; 
+    font-size: 28px; /* Slightly smaller title so it doesn't hog space */
     font-weight: 800;
     color: var(--cyan-glow);
     letter-spacing: 2px;
@@ -146,20 +148,15 @@ h1 {
     margin: 0;
 }
 
-.header-buttons {
-    position: absolute; 
-    right: 0; 
-    display: flex; 
-    gap: 15px;
-}
-
 /* --- GAME CORE --- */
 .game-core {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 30px; 
     width: 100%;
+    flex-grow: 1; /* Forces this section to fill all remaining vertical space */
+    justify-content: space-between; /* Pushes the board to the top and keyboard to the absolute bottom! */
+    margin-bottom: 15px; /* Keeps the keyboard from touching the very edge */
 }
 
 /* --- GRID --- */
@@ -167,8 +164,9 @@ h1 {
     display: grid; 
     grid-template-rows: repeat(6, 1fr); 
     gap: 5px;
-    width: 330px; 
-    height: 400px;
+    width: 280px; /* Scaled down board */
+    height: 340px; /* Scaled down board */
+    margin: auto 0; /* Keeps the board floating cleanly in its space */
 }
 .row { 
     display: grid; 
@@ -200,20 +198,20 @@ h1 {
     max-width: 500px;
     display: flex; 
     flex-direction: column; 
-    gap: 8px;
+    gap: 6px;
 }
-.key-row { display: flex; justify-content: center; gap: 6px; }
+
 .key {
     background: var(--keyboard-bg); 
     color: var(--key-text); 
     border: none;
-    height: 58px; 
+    height: 65px; /* BIGGER BUTTONS (was 58px) */
+    font-size: 16px; /* BIGGER FONT (was 14px) */
     border-radius: 4px; 
     flex: 1;
     font-weight: bold; 
     cursor: pointer; 
     text-transform: uppercase;
-    font-size: 14px;
     transition: filter 0.1s;
 }
 .key:hover { filter: brightness(1.2); }
