@@ -243,3 +243,15 @@ body.high-contrast {
     --cyan-dim: #e66a2e;       
     --yellow-warning: #85c0f9; /* Wordle High Contrast Blue */
 }
+
+/* ADD THESE TO YOUR avatar CLASSES */
+.avatar-large, .avatar-small {
+    overflow: hidden; /* Keeps the image inside the circle */
+    flex-shrink: 0;   /* Prevents the circle from squishing */
+}
+
+.avatar-large img, .avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the photo isn't stretched */
+}
