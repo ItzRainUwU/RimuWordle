@@ -7,11 +7,17 @@ const ROWS = 6; const COLS = 5;
 
 // --- 1. DISCORD HANDSHAKE ---
 // Replace the ID below with your RimuBot Client ID from the Developer Portal
-const discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
+let discordSdk;
 
 async function setupDiscordSdk() {
-    await discordSdk.ready();
-    console.log("Discord SDK is ready");
+    // We only create the SDK instance once this function is called
+    if (typeof window.discordSdk !== 'undefined') {
+        discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
+        await discordSdk.ready();
+        console.log("Discord SDK is ready");
+    } else {
+        console.warn("Discord SDK not detected. Running in browser mode.");
+    }
 }
 
 // --- LOCAL STORAGE DATA ---
