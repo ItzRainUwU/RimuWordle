@@ -38,12 +38,37 @@ async function setupDiscordSdk() {
             discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
             await discordSdk.ready();
             console.log("Discord SDK is ready");
+
+            // 1. Ask Discord for a temporary authorization code
+            const { code } = await discordSdk.commands.authorize({
+                client_id: "1441383624107884616",
+                response_type: "code",
+                state: "",
+                prompt: "none",
+                scope: ["identify"]
+            });
+
+            // 2. Send the code to your Python backend to trade for a secure token
+            const response = await fetch(`${API_URL}/api/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
             
-            // Temporary Fallback: Just set a generic name until we build the OAuth backend
-            document.getElementById("user-name-display").innerText = "Player";
+            const { access_token } = await response.json();
+
+            // 3. Authenticate the Activity using the token we got back!
+            const auth = await discordSdk.commands.authenticate({
+                access_token
+            });
+            
+            // 4. Update the UI with their real name and avatar
+            discordUser = auth.user;
+            updateUserProfile(discordUser);
             
         } catch (e) {
             console.error("Discord SDK setup failed:", e);
+            document.getElementById("user-name-display").innerText = "Guest Player";
         }
     } else {
         console.warn("Discord SDK not detected. Running in browser mode.");
