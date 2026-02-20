@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Wordle</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="app-layout">
+        <div class="players-overlay">
+            <div class="user-profile">
+                <div class="avatar-large" style="background-color: #5865F2;">R</div>
+                <div class="user-info">
+                    <span class="username">You</span>
+                    <span class="streak" id="sidebar-streak">🔥 0 Day Streak</span>
+                </div>
+            </div>
+            <div class="active-players-list" id="score-list">
+                <div class="loading-text" style="color:#818384; font-size:12px;">Loading players...</div>
+            </div>
+        </div>
+
+        <main class="game-container">
+            <header>
+                <h1>WORDLE</h1>
+                <div style="position: absolute; right: 0; display: flex; gap: 15px;">
+                    <button id="stats-btn" class="icon-btn"><i class="fas fa-chart-bar"></i></button>
+                    <button id="settings-btn" class="icon-btn"><i class="fas fa-cog"></i></button>
+                </div>
+            </header>
+
+            <div class="game-core">
+                <div id="game-board"></div>
+                <div id="keyboard-container"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>STATISTICS</h2>
+                <button id="close-stats-btn" class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-box"><div class="stat-num" id="stat-played">0</div><div class="stat-label">Played</div></div>
+                <div class="stat-box"><div class="stat-num" id="stat-win">0</div><div class="stat-label">Win %</div></div>
+                <div class="stat-box"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">Current Streak</div></div>
+                <div class="stat-box"><div class="stat-num" id="stat-max">0</div><div class="stat-label">Max Streak</div></div>
+            </div>
+            
+            <h3 style="font-size: 14px; text-align: center; margin-top: 20px;">GUESS DISTRIBUTION</h3>
+            <div id="guess-distribution"></div>
+
+            <div class="modal-footer" style="text-align: center; margin-top: 25px;">
+                <button id="play-again-btn" style="display:none; padding: 10px 20px; background: var(--cyan-glow); border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>SETTINGS</h2>
+                <button id="close-settings-btn" class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="setting-item">
+                <div class="setting-text">
+                    <div class="setting-title">Hard Mode</div>
+                    <div class="setting-desc">Any revealed hints must be used in subsequent guesses</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="hard-mode-toggle"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-text">
+                    <div class="setting-title">Dark Theme</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="dark-theme-toggle" checked><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-text">
+                    <div class="setting-title">High Contrast Mode</div>
+                    <div class="setting-desc">Contrast and colorblindness improvements</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="high-contrast-toggle"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-text">
+                    <div class="setting-title">Onscreen Keyboard Input Only</div>
+                    <div class="setting-desc">Ignore key input except from the onscreen keyboard.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="onscreen-input-toggle"><span class="slider round"></span></label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-text">
+                    <div class="setting-title">Mute Daily Reminders</div>
+                    <div class="setting-desc">Don't send a notification when new puzzles are available.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="mute-reminders-toggle"><span class="slider round"></span></label>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="words.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
