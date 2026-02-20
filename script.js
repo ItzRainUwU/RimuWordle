@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:5000"; 
+const API_URL = "http://34.31.233.27:5000";
 let currentWord = "";
 let guesses = [];
 let currentGuess = "";
@@ -339,4 +339,5 @@ async function loadLeaderboard() {
     } catch (e) { 
         document.getElementById("score-list").innerHTML = "<div style='color:#818384; font-size:12px;'>Offline Mode</div>"; 
     }
+
 }
