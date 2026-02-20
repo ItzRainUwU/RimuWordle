@@ -1,0 +1,2 @@
+# RimuWordle
+Wordle game
