@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Wordle</title>
+    <title>RimuWordle</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
     <script src="https://unpkg.com/@discord/embedded-app-sdk/dist/index.js"></script>
 </head>
 <body>
@@ -14,22 +13,27 @@
     <div id="toast-container"></div>
 
     <div class="app-layout">
-        <div class="players-overlay">
+        <aside class="players-overlay">
             <div class="user-profile">
-    <div class="avatar-large" id="user-avatar-container" style="background-color: #5865F2;">
-        <img id="user-avatar" src="" style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;">
-        <span id="user-initial">R</span> 
-    </div>
-    <div class="user-info">
-        <span class="username" id="user-name-display">You</span>
-        <span class="streak" id="sidebar-streak">🔥 0 Day Streak</span>
-    </div>
-</div>
+                <div class="avatar-large" id="user-avatar-container">
+                    <img id="user-avatar" src="" alt="Avatar">
+                    <span id="user-initial">R</span> 
+                </div>
+                <div class="user-info">
+                    <span class="username" id="user-name-display">You</span>
+                    <span class="streak" id="sidebar-streak">🔥 0 Day Streak</span>
+                </div>
+            </div>
+            
+            <div class="leaderboard-divider">Top Players</div>
+            <div class="active-players-list" id="score-list">
+                </div>
+        </aside>
 
         <main class="game-container">
             <header>
                 <h1>WORDLE</h1>
-                <div style="position: absolute; right: 0; display: flex; gap: 15px;">
+                <div class="header-buttons">
                     <button id="stats-btn" class="icon-btn"><i class="fas fa-chart-bar"></i></button>
                     <button id="settings-btn" class="icon-btn"><i class="fas fa-cog"></i></button>
                 </div>
@@ -56,11 +60,11 @@
                 <div class="stat-box"><div class="stat-num" id="stat-max">0</div><div class="stat-label">Max Streak</div></div>
             </div>
             
-            <h3 style="font-size: 14px; text-align: center; margin-top: 20px;">GUESS DISTRIBUTION</h3>
+            <h3 class="distribution-title">GUESS DISTRIBUTION</h3>
             <div id="guess-distribution"></div>
 
-            <div class="modal-footer" style="text-align: center; margin-top: 25px;">
-                <button id="play-again-btn" style="display:none; padding: 10px 20px; background: var(--cyan-glow); border: none; font-weight: bold; border-radius: 4px; cursor: pointer;">PLAY AGAIN</button>
+            <div class="modal-footer">
+                <button id="play-again-btn" class="action-btn" style="display:none;">PLAY AGAIN</button>
             </div>
         </div>
     </div>
@@ -110,7 +114,6 @@
                 </div>
                 <label class="switch"><input type="checkbox" id="mute-reminders-toggle"><span class="slider round"></span></label>
             </div>
-            
         </div>
     </div>
 
