@@ -1,4 +1,5 @@
-const API_URL = "http://34.31.233.27:5000"; 
+const API_URL = "https://rimuwordle.duckdns.org"; 
+
 let currentWord = "";
 let guesses = [];
 let currentGuess = "";
@@ -6,32 +7,51 @@ let gameOver = false;
 const ROWS = 6; const COLS = 5;
 
 // --- 1. DISCORD HANDSHAKE ---
-// Replace the ID below with your RimuBot Client ID from the Developer Portal
 let discordSdk;
+let discordUser = null;
+
+// --- LOCAL STORAGE DATA ---
+let userStats = JSON.parse(localStorage.getItem('wordleStats')) || { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
+
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Setup UI and Game State immediately
+    setupModals();
+    loadGameState(); 
+    
+    // 2. Setup Discord & Fetch Leaderboard
+    await setupDiscordSdk();
+    loadLeaderboard();
+});
 
 async function setupDiscordSdk() {
-    // We only create the SDK instance once this function is called
     if (typeof window.discordSdk !== 'undefined') {
         discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
         await discordSdk.ready();
         console.log("Discord SDK is ready");
+
+        const auth = await discordSdk.commands.authenticate();
+        discordUser = auth.user;
+        
+        updateUserProfile(discordUser);
     } else {
         console.warn("Discord SDK not detected. Running in browser mode.");
     }
 }
 
-// --- LOCAL STORAGE DATA ---
-let userStats = JSON.parse(localStorage.getItem('wordleStats')) || { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
-
-window.onload = function() {
-    // Small delay ensures the HTML IDs are fully registered in the browser memory
-    setTimeout(async () => {
-        await setupDiscordSdk(); 
-        setupModals();
-        loadGameState(); 
-        loadLeaderboard();
-    }, 100); 
-};
+function updateUserProfile(user) {
+    document.getElementById("user-name-display").innerText = user.username;
+    
+    const avatarImg = document.getElementById("user-avatar");
+    const initialSpan = document.getElementById("user-initial");
+    
+    if (user.avatar) {
+        avatarImg.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+        avatarImg.style.display = "block";
+        initialSpan.style.display = "none";
+    } else {
+        initialSpan.innerText = user.username.charAt(0).toUpperCase();
+    }
+}
 
 function initGame(forceNew = false) {
     if (forceNew || !currentWord) {
@@ -67,14 +87,7 @@ function initGame(forceNew = false) {
 // --- 2. SCORE SUBMISSION ---
 async function submitScore(numGuesses) {
     try {
-        // Get the user's Discord name automatically
-        let username = "Player";
-        if (window.discordSdk && discordSdk.instanceId) {
-             const auth = await discordSdk.commands.authenticate();
-             username = auth.user.username;
-        } else {
-             username = prompt("Enter name for leaderboard:", "Guest") || "Guest";
-        }
+        let username = discordUser ? discordUser.username : (prompt("Enter name for leaderboard:", "Guest") || "Guest");
 
         await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
@@ -106,7 +119,7 @@ async function handleEnter() {
         gameOver = true; saveGameState();
         winAnimation(guesses.length - 1);
         updateStats(true);
-        submitScore(guesses.length); // <--- SEND SCORE TO VM
+        submitScore(guesses.length); 
         setTimeout(() => showStats(true), 2000);
     } else if (guesses.length === ROWS) {
         gameOver = true; saveGameState();
@@ -140,10 +153,10 @@ function showStats(won) {
     // Draw Bars
     const distContainer = document.getElementById("guess-distribution");
     distContainer.innerHTML = "";
-    let maxDist = Math.max(...userStats.distribution, 1); // Prevent divide by 0
+    let maxDist = Math.max(...userStats.distribution, 1); 
 
     userStats.distribution.forEach((val, i) => {
-        let width = Math.max(7, (val / maxDist) * 100); // 7% min width so number fits
+        let width = Math.max(7, (val / maxDist) * 100); 
         let isHighlighted = won && i === (guesses.length - 1);
         
         distContainer.innerHTML += `
@@ -157,7 +170,7 @@ function showStats(won) {
     if (gameOver) {
         let btn = document.getElementById("play-again-btn");
         btn.style.display = "inline-block";
-        btn.onclick = () => initGame(true); // Force new game
+        btn.onclick = () => initGame(true); 
     }
 }
 
@@ -191,7 +204,6 @@ function revealTiles(result, rowIndex) {
     });
 }
 
-// (Helper for loading save state without animation)
 function restoreTilesVisually(result, rowIndex, word) {
     let row = document.getElementById("game-board").children[rowIndex];
     for (let i = 0; i < 5; i++) {
@@ -211,8 +223,8 @@ function updateKeyColor(letter, colorClass) {
     }
 }
 
-// --- STANDARD KEYBOARD/INPUT LOGIC (Keep these mostly the same) ---
-function createKeyboard() { /* ... same as previous ... */ 
+// --- STANDARD KEYBOARD/INPUT LOGIC ---
+function createKeyboard() {  
     const keys = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
     const container = document.getElementById("keyboard-container");
     container.innerHTML = "";
@@ -224,16 +236,16 @@ function createKeyboard() { /* ... same as previous ... */
         container.appendChild(rowDiv);
     });
 }
+
 function addKeyBtn(parent, text, className, action) {
     let btn = document.createElement("button"); btn.innerText = text; btn.className = `key ${className}`;
     btn.setAttribute("data-key", text); btn.onclick = (e) => { e.target.blur(); action(); };
     parent.appendChild(btn);
 }
+
 document.addEventListener("keydown", (e) => {
-    // 1. Ignore if the user turned on "Onscreen Only"
     if (document.getElementById("onscreen-input-toggle").checked) return; 
     
-    // 2. Ignore physical keyboard if Settings or Stats menus are open
     if (!document.getElementById("settings-modal").classList.contains("hidden") ||
         !document.getElementById("stats-modal").classList.contains("hidden")) {
         return;
@@ -246,8 +258,10 @@ document.addEventListener("keydown", (e) => {
     else if (key === "BACKSPACE") handleBackspace(); 
     else if (/^[A-Z]$/.test(key)) handleInput(key);
 });
+
 function handleInput(letter) { if (currentGuess.length < COLS && !gameOver) { currentGuess += letter; updateGrid(); } }
 function handleBackspace() { if (currentGuess.length > 0 && !gameOver) { currentGuess = currentGuess.slice(0, -1); updateGrid(); } }
+
 function updateGrid() {
     let row = document.getElementById("game-board").children[guesses.length];
     for (let i = 0; i < COLS; i++) {
@@ -255,10 +269,12 @@ function updateGrid() {
         if (currentGuess[i]) row.children[i].classList.add("filled"); else row.children[i].classList.remove("filled");
     }
 }
+
 function shakeRow() {
     let row = document.getElementById("game-board").children[guesses.length];
     row.classList.add("shake"); setTimeout(() => row.classList.remove("shake"), 500);
 }
+
 function checkWord(guess, target) {
     let result = Array(5).fill("absent"); let targetArr = target.split(""); let guessArr = guess.split("");
     for (let i = 0; i < 5; i++) { if (guessArr[i] === targetArr[i]) { result[i] = "correct"; targetArr[i] = null; guessArr[i] = null; } }
@@ -273,17 +289,12 @@ function checkWord(guess, target) {
 
 // --- UI SETUP ---
 function setupModals() {
-    // Stats Modal
     document.getElementById("stats-btn").onclick = () => showStats(false); 
     document.getElementById("close-stats-btn").onclick = () => document.getElementById("stats-modal").classList.add("hidden");
     
-    // Settings Modal
     document.getElementById("settings-btn").onclick = () => document.getElementById("settings-modal").classList.remove("hidden");
     document.getElementById("close-settings-btn").onclick = () => document.getElementById("settings-modal").classList.add("hidden");
 
-    // --- NEW: TOGGLE LOGIC ---
-    
-    // 1. High Contrast Toggle
     const contrastToggle = document.getElementById("high-contrast-toggle");
     contrastToggle.addEventListener("change", (e) => {
         if (e.target.checked) {
@@ -293,12 +304,10 @@ function setupModals() {
         }
     });
 
-    // 2. Hard Mode Rules
     const hardModeToggle = document.getElementById("hard-mode-toggle");
     hardModeToggle.addEventListener("click", (e) => {
-        // If they try to turn it ON, but have already made a guess:
         if (hardModeToggle.checked && guesses.length > 0) {
-            e.preventDefault(); // Stop the toggle from turning on
+            e.preventDefault(); 
             showToast("Hard mode can only be enabled at the start of a round");
         }
     });
@@ -314,6 +323,8 @@ async function loadLeaderboard() {
         let data = await response.json();
         
         let list = document.getElementById("score-list");
+        if (!list) return; // Failsafe if the HTML id is different
+        
         list.innerHTML = ""; 
         
         const colors = ["#5865F2", "#EB459E", "#FEE75C", "#57F287", "#ED4245"];
@@ -332,12 +343,12 @@ async function loadLeaderboard() {
             list.appendChild(div);
         });
     } catch (e) { 
-        document.getElementById("score-list").innerHTML = "<div style='color:#818384; font-size:12px;'>Offline Mode</div>"; 
+        let list = document.getElementById("score-list");
+        if (list) list.innerHTML = "<div style='color:#818384; font-size:12px;'>Offline Mode</div>"; 
     }
 }
 
-// --- MISSING FUNCTIONS: ADD THESE TO THE BOTTOM ---
-
+// --- SAVE/LOAD & HARD MODE ---
 function saveGameState() {
     const state = { currentWord, guesses, gameOver };
     localStorage.setItem('wordleState', JSON.stringify(state));
@@ -349,9 +360,9 @@ function loadGameState() {
         currentWord = saved.currentWord;
         guesses = saved.guesses;
         gameOver = saved.gameOver;
-        initGame(); // Rebuilds the board with the saved data
+        initGame(); 
     } else {
-        initGame(true); // Start fresh if nothing is saved
+        initGame(true); 
     }
 }
 
@@ -362,11 +373,9 @@ function checkHardMode(guess) {
     const lastResult = checkWord(lastGuess, currentWord);
     
     for (let i = 0; i < 5; i++) {
-        // If a letter was green, it must stay in the same spot
         if (lastResult[i] === 'correct' && guess[i] !== lastGuess[i]) {
             return `${i + 1}th letter must be ${lastGuess[i]}`;
         }
     }
     return null;
 }
-
