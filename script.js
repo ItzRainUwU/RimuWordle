@@ -1,5 +1,4 @@
 const API_URL = "https://rimuwordle.duckdns.org"; 
-
 let currentWord = "";
 let guesses = [];
 let currentGuess = "";
@@ -8,29 +7,7 @@ const ROWS = 6; const COLS = 5;
 
 // --- 1. DISCORD HANDSHAKE ---
 let discordSdk;
-let discordUser = null;
-
-// --- LOCAL STORAGE DATA (FIXED FOR DISCORD) ---
-let userStats = { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
-
-// Wrap in try/catch to prevent Discord Sandbox from crashing the game
-try {
-    let savedStats = localStorage.getItem('wordleStats');
-    if (savedStats) userStats = JSON.parse(savedStats);
-} catch (e) {
-    console.warn("localStorage is blocked. Stats will not save between sessions.");
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-    // Hide the broken avatar image initially
-    document.getElementById("user-avatar").style.display = "none";
-    
-    setupModals();
-    loadGameState(); 
-    
-    await setupDiscordSdk();
-    loadLeaderboard();
-});
+let discordUser = null; // Store the user globally
 
 async function setupDiscordSdk() {
     if (typeof window.discordSdk !== 'undefined') {
@@ -41,7 +18,7 @@ async function setupDiscordSdk() {
 
             let code;
             try {
-                // 1. Try to authenticate silently (works for returning players)
+                // 1. Try to authenticate silently
                 const result = await discordSdk.commands.authorize({
                     client_id: "1441383624107884616",
                     response_type: "code",
@@ -74,19 +51,51 @@ async function setupDiscordSdk() {
             // 4. Authenticate the user into the Activity
             const auth = await discordSdk.commands.authenticate({ access_token });
             
+            // 5. Update the UI with their real name and avatar
             discordUser = auth.user;
-            updateUserProfile(discordUser);
+            document.getElementById("user-name-display").innerText = discordUser.username;
+            
+            const avatarImg = document.getElementById("user-avatar");
+            const initialSpan = document.getElementById("user-initial");
+            
+            if (discordUser.avatar) {
+                avatarImg.src = `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`;
+                avatarImg.style.display = "block";
+                initialSpan.style.display = "none";
+            } else {
+                initialSpan.innerText = discordUser.username.charAt(0).toUpperCase();
+            }
             
         } catch (e) {
             console.error("Discord SDK setup failed:", e);
             document.getElementById("user-name-display").innerText = "Auth Error";
-            // This will pop up a red message on your screen telling us exactly what went wrong!
             showToast("Auth Error: " + (e.message || "Check Dev Portal Redirects")); 
         }
     } else {
         console.warn("Discord SDK not detected. Running in browser mode.");
     }
 }
+
+// --- LOCAL STORAGE DATA ---
+let userStats = { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
+try {
+    let savedStats = localStorage.getItem('wordleStats');
+    if (savedStats) userStats = JSON.parse(savedStats);
+} catch (e) {
+    console.warn("localStorage is blocked.");
+}
+
+window.onload = function() {
+    setTimeout(async () => {
+        // Hide the broken avatar image initially
+        document.getElementById("user-avatar").style.display = "none";
+        
+        await setupDiscordSdk(); 
+        setupModals();
+        loadGameState(); 
+        loadLeaderboard();
+    }, 100); 
+};
 
 function updateUserProfile(user) {
     document.getElementById("user-name-display").innerText = user.username;
@@ -137,7 +146,7 @@ function initGame(forceNew = false) {
 // --- 2. SCORE SUBMISSION ---
 async function submitScore(numGuesses) {
     try {
-        let username = discordUser ? discordUser.username : "Player";
+        let username = discordUser ? discordUser.username : "Guest";
 
         await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
