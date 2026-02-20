@@ -58,18 +58,23 @@ function initGame(forceNew = false) {
 // --- 2. SCORE SUBMISSION ---
 async function submitScore(numGuesses) {
     try {
-        // For now, we use a prompt for the name. 
-        // Later we can upgrade this to get the real Discord name automatically.
-        const name = prompt("Great job! Enter your name for the leaderboard:", "Player") || "Player";
+        // Get the user's Discord name automatically
+        let username = "Player";
+        if (window.discordSdk && discordSdk.instanceId) {
+             const auth = await discordSdk.commands.authenticate();
+             username = auth.user.username;
+        } else {
+             username = prompt("Enter name for leaderboard:", "Guest") || "Guest";
+        }
 
         await fetch(`${API_URL}/submit-score`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: name, guesses: numGuesses })
+            body: JSON.stringify({ username: username, guesses: numGuesses })
         });
-        loadLeaderboard(); // Refresh the list after submitting
+        loadLeaderboard(); 
     } catch (e) {
-        console.error("Score submission failed. Is server.py running?", e);
+        console.error("Score submission failed.", e);
     }
 }
 
@@ -320,4 +325,38 @@ async function loadLeaderboard() {
     } catch (e) { 
         document.getElementById("score-list").innerHTML = "<div style='color:#818384; font-size:12px;'>Offline Mode</div>"; 
     }
+}
+
+// --- MISSING FUNCTIONS: ADD THESE TO THE BOTTOM ---
+
+function saveGameState() {
+    const state = { currentWord, guesses, gameOver };
+    localStorage.setItem('wordleState', JSON.stringify(state));
+}
+
+function loadGameState() {
+    const saved = JSON.parse(localStorage.getItem('wordleState'));
+    if (saved && saved.currentWord) {
+        currentWord = saved.currentWord;
+        guesses = saved.guesses;
+        gameOver = saved.gameOver;
+        initGame(); // Rebuilds the board with the saved data
+    } else {
+        initGame(true); // Start fresh if nothing is saved
+    }
+}
+
+function checkHardMode(guess) {
+    if (!document.getElementById("hard-mode-toggle").checked || guesses.length === 0) return null;
+    
+    const lastGuess = guesses[guesses.length - 1];
+    const lastResult = checkWord(lastGuess, currentWord);
+    
+    for (let i = 0; i < 5; i++) {
+        // If a letter was green, it must stay in the same spot
+        if (lastResult[i] === 'correct' && guess[i] !== lastGuess[i]) {
+            return `${i + 1}th letter must be ${lastGuess[i]}`;
+        }
+    }
+    return null;
 }
