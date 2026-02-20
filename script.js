@@ -39,16 +39,30 @@ async function setupDiscordSdk() {
             await discordSdk.ready();
             console.log("Discord SDK is ready");
 
-            // 1. Ask Discord for a temporary authorization code
-            const { code } = await discordSdk.commands.authorize({
-                client_id: "1441383624107884616",
-                response_type: "code",
-                state: "",
-                prompt: "none",
-                scope: ["identify"]
-            });
+            let code;
+            try {
+                // 1. Try to authenticate silently (works for returning players)
+                const result = await discordSdk.commands.authorize({
+                    client_id: "1441383624107884616",
+                    response_type: "code",
+                    state: "",
+                    prompt: "none",
+                    scope: ["identify"]
+                });
+                code = result.code;
+            } catch (silentError) {
+                // 2. If silent fails, force the Discord authorization popup!
+                const popupResult = await discordSdk.commands.authorize({
+                    client_id: "1441383624107884616",
+                    response_type: "code",
+                    state: "",
+                    prompt: "consent",
+                    scope: ["identify"]
+                });
+                code = popupResult.code;
+            }
 
-            // 2. Send the code to your Python backend to trade for a secure token
+            // 3. Trade the code for a token on your VM
             const response = await fetch(`${API_URL}/api/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -57,12 +71,9 @@ async function setupDiscordSdk() {
             
             const { access_token } = await response.json();
 
-            // 3. Authenticate the Activity using the token we got back!
-            const auth = await discordSdk.commands.authenticate({
-                access_token
-            });
+            // 4. Authenticate the user into the Activity
+            const auth = await discordSdk.commands.authenticate({ access_token });
             
-            // 4. Update the UI with their real name and avatar
             discordUser = auth.user;
             updateUserProfile(discordUser);
             
