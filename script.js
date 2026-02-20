@@ -79,7 +79,9 @@ async function setupDiscordSdk() {
             
         } catch (e) {
             console.error("Discord SDK setup failed:", e);
-            document.getElementById("user-name-display").innerText = "Guest Player";
+            document.getElementById("user-name-display").innerText = "Auth Error";
+            // This will pop up a red message on your screen telling us exactly what went wrong!
+            showToast("Auth Error: " + (e.message || "Check Dev Portal Redirects")); 
         }
     } else {
         console.warn("Discord SDK not detected. Running in browser mode.");
