@@ -1,16 +1,26 @@
-const API_URL = "http://34.31.233.27:5000";
+const API_URL = "http://34.31.233.27:5000"; 
 let currentWord = "";
 let guesses = [];
 let currentGuess = "";
 let gameOver = false;
 const ROWS = 6; const COLS = 5;
 
+// --- 1. DISCORD HANDSHAKE ---
+// Replace the ID below with your RimuBot Client ID from the Developer Portal
+const discordSdk = new window.discordSdk.DiscordSDK("1441383624107884616");
+
+async function setupDiscordSdk() {
+    await discordSdk.ready();
+    console.log("Discord SDK is ready");
+}
+
 // --- LOCAL STORAGE DATA ---
 let userStats = JSON.parse(localStorage.getItem('wordleStats')) || { played: 0, wins: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0] };
 
 window.onload = function() {
+    setupDiscordSdk(); // Performs the handshake to prevent gray screens
     setupModals();
-    loadGameState(); // Checks if a game is already in progress
+    loadGameState(); 
     loadLeaderboard();
 };
 
@@ -26,7 +36,6 @@ function initGame(forceNew = false) {
     document.getElementById("play-again-btn").style.display = "none";
     document.getElementById("stats-modal").classList.add("hidden");
 
-    // Build Grid
     const board = document.getElementById("game-board");
     board.innerHTML = ""; 
     for (let i = 0; i < ROWS; i++) {
@@ -39,7 +48,6 @@ function initGame(forceNew = false) {
     }
     createKeyboard();
 
-    // Restore previous guesses visually if reloading
     for (let i = 0; i < guesses.length; i++) {
         let result = checkWord(guesses[i], currentWord);
         restoreTilesVisually(result, i, guesses[i]);
@@ -47,50 +55,23 @@ function initGame(forceNew = false) {
     updateSidebar();
 }
 
-// --- SAVE STATE LOGIC ---
-function saveGameState() {
-    const state = { currentWord, guesses, gameOver };
-    localStorage.setItem('wordleState', JSON.stringify(state));
-}
+// --- 2. SCORE SUBMISSION ---
+async function submitScore(numGuesses) {
+    try {
+        // For now, we use a prompt for the name. 
+        // Later we can upgrade this to get the real Discord name automatically.
+        const name = prompt("Great job! Enter your name for the leaderboard:", "Player") || "Player";
 
-function loadGameState() {
-    const saved = JSON.parse(localStorage.getItem('wordleState'));
-    if (saved && !saved.gameOver) {
-        currentWord = saved.currentWord;
-        guesses = saved.guesses || [];
-        gameOver = saved.gameOver;
-        initGame(false); // Load existing
-    } else {
-        initGame(true); // Start fresh
+        await fetch(`${API_URL}/submit-score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: name, guesses: numGuesses })
+        });
+        loadLeaderboard(); // Refresh the list after submitting
+    } catch (e) {
+        console.error("Score submission failed. Is server.py running?", e);
     }
 }
-
-// --- HARD MODE LOGIC ---
-function checkHardMode(guess) {
-    const hardModeToggle = document.getElementById("hard-mode-toggle");
-    if (!hardModeToggle || !hardModeToggle.checked) return null; // Hard mode is off
-    if (guesses.length === 0) return null; // First guess is always valid
-
-    let lastGuess = guesses[guesses.length - 1];
-    let result = checkWord(lastGuess, currentWord);
-    
-    // 1. Check Greens (Exact matches)
-    for (let i = 0; i < COLS; i++) {
-        if (result[i] === 'correct' && guess[i] !== lastGuess[i]) {
-            return `${i + 1}${getOrdinal(i + 1)} letter must be ${lastGuess[i]}`;
-        }
-    }
-    
-    // 2. Check Yellows (Contains)
-    for (let i = 0; i < COLS; i++) {
-        if (result[i] === 'present' && !guess.includes(lastGuess[i])) {
-            return `Guess must contain ${lastGuess[i]}`;
-        }
-    }
-    return null; // Passed hard mode
-}
-
-function getOrdinal(n) { return ["st", "nd", "rd"][n - 1] || "th"; }
 
 // --- GAME LOGIC ---
 async function handleEnter() {
@@ -98,7 +79,6 @@ async function handleEnter() {
     if (currentGuess.length !== COLS) { shakeRow(); showToast("Not enough letters"); return; }
     if (!ALL_WORDS.includes(currentGuess.toLowerCase())) { shakeRow(); showToast("Not in word list"); return; }
 
-    // Hard Mode Check
     const hardModeError = checkHardMode(currentGuess);
     if (hardModeError) { shakeRow(); showToast(hardModeError); return; }
 
@@ -112,7 +92,8 @@ async function handleEnter() {
         gameOver = true; saveGameState();
         winAnimation(guesses.length - 1);
         updateStats(true);
-        setTimeout(() => showStats(true), 2000); // Show stats after bounce finishes
+        submitScore(guesses.length); // <--- SEND SCORE TO VM
+        setTimeout(() => showStats(true), 2000);
     } else if (guesses.length === ROWS) {
         gameOver = true; saveGameState();
         updateStats(false);
@@ -339,5 +320,4 @@ async function loadLeaderboard() {
     } catch (e) { 
         document.getElementById("score-list").innerHTML = "<div style='color:#818384; font-size:12px;'>Offline Mode</div>"; 
     }
-
 }
