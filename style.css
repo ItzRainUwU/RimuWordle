@@ -14,32 +14,46 @@
     --tile-border-active: #56575d;
 }
 
+/* Global Font & Reset */
+* {
+    box-sizing: border-box;
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
 body {
     background-color: var(--bg-color);
     color: white;
-    font-family: 'gg sans', 'Segoe UI', Helvetica, Arial, sans-serif;
     margin: 0;
-    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* This perfectly centers everything vertically */
+    min-height: 100vh;
     overflow: hidden;
 }
 
+/* --- LAYOUT --- */
 .app-layout { 
     display: flex; 
-    width: 100%; 
-    height: 100%; 
-    position: relative;
-    justify-content: center; /* Centers the game */
+    flex-direction: row; 
+    justify-content: center; 
+    align-items: center; /* Ensures sidebar and game are aligned together */
+    width: 100%;
+    max-width: 1000px; 
+    gap: 60px; 
+    padding: 20px;
 }
 
-/* --- FLOATING PLAYERS (Left Side) --- */
+/* --- SIDEBAR / LEADERBOARD --- */
 .players-overlay {
-    position: absolute;
-    left: 20px;
-    top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    z-index: 10;
+    gap: 15px;
+    width: 240px;
+    flex-shrink: 0; 
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--tile-border-idle);
 }
 
 .user-profile, .player-row {
@@ -48,79 +62,125 @@ body {
     gap: 12px;
 }
 
-.avatar-large {
-    width: 40px; height: 40px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 18px; color: white;
+.player-row {
+    padding: 8px 0;
 }
 
-.avatar-small {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: bold; color: white;
+.leaderboard-divider {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #818384;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    border-bottom: 1px solid var(--tile-border-idle);
+    padding-bottom: 5px;
 }
-
-.user-info, .player-stats { 
-    display: flex; flex-direction: column; 
-}
-
-.username { font-weight: 600; font-size: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-.streak { color: #faa61a; font-size: 12px; font-weight: 500; }
 
 .active-players-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 5px;
 }
+
+/* Avatars */
+.avatar-large, .avatar-small {
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: bold; 
+    color: white;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar-large {
+    width: 48px; 
+    height: 48px; 
+    font-size: 20px;
+    background-color: #5865F2; /* Default Discord Blurple */
+}
+
+.avatar-small {
+    width: 32px; 
+    height: 32px; 
+    font-size: 14px;
+}
+
+#user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none; /* Hidden until loaded by JS */
+}
+
+.user-info, .player-stats { 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.username { font-weight: bold; font-size: 16px; }
+.streak { color: #faa61a; font-size: 13px; font-weight: 500; margin-top: 2px;}
 
 /* --- MAIN GAME --- */
 .game-container {
-    width: 100%;
-    max-width: 500px;
+    flex-grow: 0;
+    width: 400px;
     display: flex; 
     flex-direction: column; 
     align-items: center;
-    padding: 20px; 
 }
 
 header {
     width: 100%; 
-    display: flex; justify-content: center; align-items: center;
-    position: relative; padding-bottom: 15px;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    position: relative; 
+    padding-bottom: 15px;
     border-bottom: 1px solid var(--tile-border-idle);
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 h1 {
-    font-family: 'Segoe UI', sans-serif; 
-    font-size: 32px; font-weight: 800;
+    font-size: 36px; 
+    font-weight: 800;
     color: var(--cyan-glow);
-    text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
     margin: 0;
 }
 
-#settings-btn {
-    position: absolute; right: 0;
-    background: none; border: none; color: #818384;
-    font-size: 22px; cursor: pointer; transition: transform 0.2s;
+.header-buttons {
+    position: absolute; 
+    right: 0; 
+    display: flex; 
+    gap: 15px;
 }
-#settings-btn:hover { color: white; transform: rotate(90deg); }
 
-/* --- GAME CORE (Fixes the Gap) --- */
+/* --- GAME CORE --- */
 .game-core {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px; /* EXACT spacing between grid and keyboard */
+    gap: 30px; 
     width: 100%;
 }
 
 /* --- GRID --- */
 #game-board {
-    display: grid; grid-template-rows: repeat(6, 1fr); gap: 5px;
-    width: 330px; height: 400px;
+    display: grid; 
+    grid-template-rows: repeat(6, 1fr); 
+    gap: 5px;
+    width: 330px; 
+    height: 400px;
 }
-.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.row { 
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 5px; 
+}
 .tile {
     width: 100%; 
     height: 100%;
@@ -128,105 +188,124 @@ h1 {
     display: flex; 
     justify-content: center; 
     align-items: center;
-    font-size: 2rem; 
+    font-size: 32px; 
     font-weight: bold; 
     text-transform: uppercase;
     user-select: none; 
-    color: white;
-    
-    /* NEW: This rounds the corners! */
     border-radius: 4px; 
-    
-    /* NEW: Keeps the box size exact so it doesn't warp */
-    box-sizing: border-box; 
+    transition: transform 0.1s ease-in-out;
 }
 .tile.filled { border-color: var(--tile-border-active); animation: pop 0.1s; }
-.tile.correct { background: var(--cyan-glow); border-color: var(--cyan-glow); color: black; box-shadow: 0 0 15px var(--cyan-glow); }
+.tile.correct { background: var(--cyan-glow); border-color: var(--cyan-glow); color: black; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
 .tile.present { background: var(--yellow-warning); border-color: var(--yellow-warning); color: black; }
 .tile.absent { background: var(--dark-unused); border-color: var(--dark-unused); }
 
 /* --- KEYBOARD --- */
 #keyboard-container {
-    width: 100%; max-width: 500px;
-    display: flex; flex-direction: column; gap: 8px;
+    width: 100%; 
+    max-width: 500px;
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
 }
 .key-row { display: flex; justify-content: center; gap: 6px; }
 .key {
-    background: var(--keyboard-bg); color: var(--key-text); border: none;
-    height: 58px; border-radius: 4px; flex: 1;
-    font-weight: bold; cursor: pointer; text-transform: uppercase;
+    background: var(--keyboard-bg); 
+    color: var(--key-text); 
+    border: none;
+    height: 58px; 
+    border-radius: 4px; 
+    flex: 1;
+    font-weight: bold; 
+    cursor: pointer; 
+    text-transform: uppercase;
     font-size: 14px;
+    transition: filter 0.1s;
 }
+.key:hover { filter: brightness(1.2); }
 .key.wide { flex: 1.5; font-size: 12px; }
 .key.correct { background: var(--cyan-glow); color: black; }
 .key.present { background: var(--yellow-warning); color: black; }
 .key.absent { background: #1f1f1f; color: #555; }
 
-/* --- SETTINGS MODAL --- */
+/* --- MODALS --- */
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex; justify-content: center; align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(2px);
 }
 .modal.hidden { display: none; }
 .modal-content {
-    background-color: #121213; width: 90%; max-width: 500px;
-    border-radius: 4px; padding: 20px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.8); border: 1px solid #1a1a1b;
+    background-color: var(--bg-color); 
+    width: 90%; 
+    max-width: 500px;
+    border-radius: 8px; 
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.8); 
+    border: 1px solid #1a1a1b;
 }
 .modal-header { display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 25px; }
-.modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; color: white; text-transform: uppercase;}
-#close-settings-btn { position: absolute; right: 0; background: none; border: none; color: #818384; cursor: pointer; font-size: 24px; }
-#close-settings-btn:hover { color: white; }
+.modal-header h2 { margin: 0; font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;}
+.close-btn { position: absolute; right: 0; font-size: 24px; }
+
+/* --- SETTINGS MENU --- */
 .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #3a3a3c; min-height: 40px; }
-.setting-title { font-size: 18px; margin-bottom: 4px; color: white; }
+.setting-title { font-size: 18px; margin-bottom: 4px; }
 .setting-desc { font-size: 13px; color: #818384; max-width: 85%; }
-.modal-footer { text-align: right; font-size: 12px; color: #56575d; margin-top: 20px; font-family: monospace; }
+
+/* --- STATS MENU --- */
+.stats-container { display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center; }
+.stat-num { font-size: 36px; font-weight: bold; }
+.stat-label { font-size: 12px; color: #818384; }
+
+.distribution-title { font-size: 14px; text-align: center; margin-top: 20px; font-weight: bold; letter-spacing: 1px; }
+#guess-distribution { display: flex; flex-direction: column; gap: 6px; width: 85%; margin: 0 auto; }
+.dist-row { display: flex; align-items: center; font-size: 14px; font-weight: bold; }
+.dist-num { width: 15px; text-align: right; margin-right: 10px; }
+.dist-bar { 
+    background-color: #3a3a3c; 
+    padding: 3px 8px; 
+    text-align: right; 
+    min-width: 20px; 
+    border-radius: 2px;
+}
+.dist-bar.highlight { background-color: var(--cyan-glow); color: black; box-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
+
+.modal-footer { text-align: center; margin-top: 30px; }
+.action-btn {
+    padding: 12px 24px; 
+    background: var(--cyan-glow); 
+    color: black;
+    border: none; 
+    font-weight: bold; 
+    font-size: 16px;
+    border-radius: 4px; 
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+}
+
+/* --- TOGGLES --- */
 .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;}
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3c; transition: .2s; border-radius: 34px; }
 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
-input:checked + .slider { background-color: #538d4e; }
+input:checked + .slider { background-color: var(--cyan-dim); }
 input:checked + .slider:before { transform: translateX(20px); }
 
-/* Mobile */
-@media (max-width: 700px) { .players-overlay { display: none; } }
-@keyframes pop { 50% { transform: scale(1.1); } }
+/* --- BUTTONS & ANIMATIONS --- */
+.icon-btn { background: none; border: none; color: #818384; font-size: 20px; cursor: pointer; transition: color 0.2s, transform 0.2s; }
+.icon-btn:hover { color: white; transform: scale(1.1); }
+#settings-btn:hover { transform: rotate(90deg); }
+
 .shake { animation: shake 0.5s; }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-
-/* --- ICON BUTTONS --- */
-.icon-btn { background: none; border: none; color: #818384; font-size: 20px; cursor: pointer; transition: color 0.2s; }
-.icon-btn:hover { color: white; }
-.close-btn { position: absolute; right: 0; font-size: 24px; }
-
-/* --- TOAST MESSAGES --- */
-#toast-container {
-    position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; gap: 10px;
-    z-index: 2000; pointer-events: none; align-items: center;
-}
-.toast {
-    background-color: white; color: black; padding: 12px; border-radius: 4px;
-    font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    opacity: 1; transition: opacity 0.5s ease-out;
-}
-
-/* --- STATS MODAL --- */
-.stats-container { display: flex; justify-content: space-around; margin-bottom: 20px; text-align: center; }
-.stat-num { font-size: 30px; font-weight: 400; color: white; }
-.stat-label { font-size: 11px; color: white; }
-#guess-distribution { display: flex; flex-direction: column; gap: 4px; width: 80%; margin: 0 auto; }
-.dist-row { display: flex; align-items: center; font-size: 14px; font-weight: bold; color: white; }
-.dist-num { width: 15px; text-align: right; margin-right: 8px; }
-.dist-bar { 
-    background-color: #3a3a3c; color: white; padding: 2px 8px; 
-    text-align: right; min-width: 15px; /* Minimum width so the number fits */
-}
-.dist-bar.highlight { background-color: var(--cyan-glow); color: black; }
-
-/* --- BOUNCE ANIMATION (For winning) --- */
+@keyframes pop { 50% { transform: scale(1.05); } }
 .tile.bounce { animation: bounce 0.6s ease-in-out; }
 @keyframes bounce {
     0%, 20% { transform: translateY(0); }
@@ -236,22 +315,27 @@ input:checked + .slider:before { transform: translateX(20px); }
     80% { transform: translateY(0); }
 }
 
+/* --- TOAST MESSAGES --- */
+#toast-container {
+    position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 2000; pointer-events: none; align-items: center;
+}
+.toast {
+    background-color: white; color: black; padding: 12px 20px; border-radius: 4px;
+    font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    opacity: 1; transition: opacity 0.5s ease-out;
+}
+
 /* --- HIGH CONTRAST MODE --- */
-/* When this class is added to the body, it overrides the default variables */
 body.high-contrast {
-    --cyan-glow: #f5793a;      /* Wordle High Contrast Orange */
+    --cyan-glow: #f5793a;      
     --cyan-dim: #e66a2e;       
-    --yellow-warning: #85c0f9; /* Wordle High Contrast Blue */
+    --yellow-warning: #85c0f9; 
 }
 
-/* ADD THESE TO YOUR avatar CLASSES */
-.avatar-large, .avatar-small {
-    overflow: hidden; /* Keeps the image inside the circle */
-    flex-shrink: 0;   /* Prevents the circle from squishing */
-}
-
-.avatar-large img, .avatar-small img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures the photo isn't stretched */
+/* Mobile Adjustments */
+@media (max-width: 800px) { 
+    .app-layout { flex-direction: column; gap: 30px; }
+    .players-overlay { width: 100%; max-width: 400px; }
 }
