@@ -193,6 +193,7 @@ h1 {
 .tile.absent { background: var(--dark-unused); border-color: var(--dark-unused); }
 
 /* --- KEYBOARD --- */
+/* --- KEYBOARD --- */
 #keyboard-container {
     width: 100%; 
     max-width: 500px;
@@ -201,12 +202,20 @@ h1 {
     gap: 6px;
 }
 
+/* ADD THIS BLOCK BACK IN! */
+.key-row { 
+    display: flex; 
+    justify-content: center; 
+    gap: 6px; 
+    width: 100%;
+}
+
 .key {
     background: var(--keyboard-bg); 
     color: var(--key-text); 
     border: none;
-    height: 65px; /* BIGGER BUTTONS (was 58px) */
-    font-size: 16px; /* BIGGER FONT (was 14px) */
+    height: 65px; 
+    font-size: 16px; 
     border-radius: 4px; 
     flex: 1;
     font-weight: bold; 
